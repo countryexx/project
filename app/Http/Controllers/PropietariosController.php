@@ -724,4 +724,157 @@ class PropietariosController extends Controller
         }
 
     }
+
+    public function listadodeopradores() {
+
+        if (!Auth::check()){
+
+            return view('auth.login');
+
+        }else{
+
+            $query = "select o.id, o.fk_estado, o.nombres, o.apellidos, o.celular, o.identificacion, o.vigencia_licencia, datediff(o.vigencia_licencia, now()) as diff_licencia, o.vigencia_seguridad_social, datediff(o.vigencia_seguridad_social, now()) as diff_ss, e.nombre as nombre_estado, c.nombre as contratista, c.id as id_contratista from operadores o left join contratistas c on c.id = o.fk_contratista left join estados e on e.id = o.fk_estado ";
+
+            $operadores = DB::select($query);
+
+            $tipos = Contratista::tiposSelect(7); //vinculación
+
+            $estados = Contratista::estadosSelect(1);
+
+            return View::make('contratistas.operadores.listado_operadores')
+            ->with([
+                'operadores' => $operadores,
+                'estados' => $estados
+            ]);
+
+        }
+
+    }
+
+    public function filtraropradores(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $id = $request->id;
+            $complement = '';
+
+            if( !intval($id)==0 ) {
+                $complement = ' where o.fk_estado = '.$id.'';
+            }
+
+            $query = "select o.id, o.fk_estado, o.nombres, o.apellidos, o.celular, o.identificacion, o.vigencia_licencia, datediff(o.vigencia_licencia, now()) as diff_licencia, o.vigencia_seguridad_social, datediff(o.vigencia_seguridad_social, now()) as diff_ss, e.nombre as nombre_estado, c.nombre as contratista, c.id as id_contratista from operadores o left join contratistas c on c.id = o.fk_contratista left join estados e on e.id = o.fk_estado".$complement."";
+
+            $operadores = DB::select($query);
+
+            return Response::json([
+                'respuesta' => true,
+                'operadores' => $operadores,
+                'query' => $query
+            ]);
+
+        }
+
+    }
+
+    public function listarproveedores(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $id = $request->id;
+
+            $query = "select id, nombre, identificacion from contratistas where id <> ".$id." ";
+            $contratistas = DB::select($query);
+
+            return Response::json([
+                'respuesta' => true,
+                'contratistas' => $contratistas
+            ]);
+
+        }
+
+    }
+
+    public function asignarcontratista(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $id = $request->id;
+            $operador = $request->operador;
+
+            $update = DB::table('operadores')
+            ->where('id', $operador)
+            ->update([
+                'fk_contratista' => $id
+            ]);
+
+            if($update) {
+
+                return Response::json([
+                    'respuesta' => true,
+                    'mensaje' => 'Contratista asignado correctamente!'
+                ]);
+
+            }else{
+
+                return Response::json([
+                    'respuesta' => false,
+                    'mensaje' => 'Error al asignar. Inténtalo de nuevo o Comunícate con el administrador del sistema!'
+                ]);
+
+            }
+
+        }
+
+    }
+
+    public function activacionoperadores(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $id = $request->id;
+            $value = $request->value;
+
+            $update = DB::table('operadores')
+            ->where('id', $id)
+            ->update([
+                'fk_estado' => intval($value)
+            ]);
+
+            return Response::json([
+                'respuesta' => true,
+                'mensaje' => 'Proceso realizado correctamente!',
+                'value' => intval($id)
+            ]);
+
+        }
+
+    }
 }

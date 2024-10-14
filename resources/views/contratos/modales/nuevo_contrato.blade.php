@@ -21,20 +21,20 @@
                 <div class="row align-items-start" style="margin-top: 30px">
 
                   <div class="col">
-                    <b class="etiqueta">Objeto del Contrato</b>
-                      <select class="form-select" aria-label="Default select example" id="objeto_contrato">
-                          <option value="0" selected>Seleccionar</option>
-                          @foreach($objeto_contratos as $objeto)
-                            <option value="{{$objeto->id}}">{{$objeto->nombre}}</option>
-                          @endforeach
-                      </select>
-                  </div>
-
-                  <div class="col">
                     <b class="etiqueta">Razón Social</b>
                     <input id="razon_social" class="form-control form-control-md" type="text" placeholder="Escribe aquí" aria-label=".form-control-lg example">
                   </div>
 
+                  <div class="col">
+                    <b class="etiqueta">Tipo de Empresa</b>
+                    <select class="form-select" aria-label="Default select example" id="tipo_de_empresa">
+                        <option value="0" selected>Seleccionar</option>
+                        @foreach($empresas as $empresa)
+                          <option value="{{$empresa->id}}">{{$empresa->nombre}}</option>
+                        @endforeach
+                    </select>
+                  </div>
+                  
                   <div class="col">
                     <b class="etiqueta">Dirección</b>
                     <input id="direccion" class="form-control form-control-md" type="text" placeholder="Escribe aquí" aria-label=".form-control-lg example">
@@ -49,13 +49,13 @@
                 <div class="row align-items-center" style="margin-top: 30px">
                   
                   <div class="col">
-                    <b class="etiqueta">Tipo de Empresa</b>
-                      <select class="form-select" aria-label="Default select example" id="tipo_de_empresa">
-                          <option value="0" selected>Seleccionar</option>
-                          @foreach($empresas as $empresa)
-                            <option value="{{$empresa->id}}">{{$empresa->nombre}}</option>
-                          @endforeach
-                      </select>
+                    <b class="etiqueta">Objeto del Contrato</b>
+                    <select class="form-select" aria-label="Default select example" id="objeto_contrato">
+                        <option value="0" selected>Seleccionar</option>
+                        @foreach($objeto_contratos as $objeto)
+                          <option value="{{$objeto->id}}">{{$objeto->nombre}}</option>
+                        @endforeach
+                    </select>
                   </div>
 
                   <div class="col">

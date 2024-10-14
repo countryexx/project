@@ -24,4 +24,15 @@ class Contratista extends Model
 
     }
 
+    public static function estadosSelect($id) {
+
+    	$estados = DB::table('estados')
+        ->where('fk_estados_padre', $id)
+        ->where('estado', 1)
+        ->get();
+
+        return $estados;
+
+    }
+
 }

@@ -15,6 +15,7 @@ use App\Models\Contratista;
 use App\Models\Contrato;
 use App\Models\ContratoFuec;
 use App\Models\Fuec;
+use App\Models\Centrodecosto;
 
 use DB;
 use View;
@@ -210,6 +211,77 @@ class ContratosController extends Controller
                 }
 
             }
+        }
+    }
+
+    public function listarcentros(Request $request) {
+
+    	if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+        	$id = $request->id;
+
+        	$centros = DB::table('centrosdecosto')
+        	->where('fk_contratos', $id)
+        	->get();
+
+        	return Response::json([
+        		'respuesta' => true,
+        		'centros' => $centros
+        	]);
+
+        }
+
+    }
+
+    public function nuevocentro(Request $request) {
+
+    	if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+        	$id = $request->id;
+            $nombre = strtoupper($request->nombre);
+            $identificacion = $request->identificacion;
+            $direccion = strtoupper($request->direccion);
+            $celular = $request->celular;
+            $correo = strtoupper($request->correo);
+
+            $centro = new Centrodecosto;
+            $centro->nombre = $nombre;
+            $centro->identificacion = $identificacion;
+            $centro->direccion = $direccion;
+            $centro->correo = $correo;
+            $centro->celular = $celular;
+            $centro->fk_contratos = $id;
+
+            if( $centro->save() ) {
+
+                return Response::json([
+                    'respuesta' => true,
+                    'mensaje' => 'Centro de Costo creado correctamente!'
+                ]);
+
+            }else{
+                
+                return Response::json([
+                    'respuesta' => false,
+                    'mensaje' => 'Error al crear. Comunícate con el administrador.'
+                ]);
+
+            }
+
         }
     }
 

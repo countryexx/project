@@ -64,35 +64,101 @@ Route::post('/vehiculos/consultarplaca', [PropietariosController::class, 'consul
 Route::post('/vehiculos/crearvehiculo', [PropietariosController::class, 'crearvehiculo']);
 Route::post('/operadores/consultaroperador', [PropietariosController::class, 'consultaroperador']);
 Route::post('/operadores/crearoperador', [PropietariosController::class, 'crearoperador']);
+Route::get('/listadodeopradores', [PropietariosController::class, 'listadodeopradores']);
+Route::post('/filtraropradores', [PropietariosController::class, 'filtraropradores']);
+Route::post('/listarproveedores', [PropietariosController::class, 'listarproveedores']);
+Route::post('/asignarcontratista', [PropietariosController::class, 'asignarcontratista']);
+Route::post('/activacionoperadores', [PropietariosController::class, 'activacionoperadores']);
 
 Route::get('/contratos', [ContratosController::class, 'contratos']);
 Route::post('/contratos/consultarcontrato', [ContratosController::class, 'consultarcontrato']);
 Route::post('/contratos/nuevocontrato', [ContratosController::class, 'nuevocontrato']);
+Route::post('/contratos/listarcentros', [ContratosController::class, 'listarcentros']);
+Route::post('/contratos/nuevocentro', [ContratosController::class, 'nuevocentro']);
 
 Route::get('/contratosyrutas', [ContratosController::class, 'contratosyrutas']);
 Route::post('/nuevarutafuec', [ContratosController::class, 'nuevarutafuec']);
 Route::get('/fuec', [ContratosController::class, 'fuec']);
 Route::post('/nuevofuec', [ContratosController::class, 'nuevofuec']);
 
+
+
 Route::get('/ciudades', [ParamController::class, 'ciudades']);
 Route::post('/ciudades/creardepartamento', [ParamController::class, 'creardepartamento']);
 Route::post('/ciudades/crearciudad', [ParamController::class, 'crearciudad']);
 
-Route::post('/prueba', function (Request $request) {
+Route::get('/hv', function (Request $request) {
 
-  if ($request->hasFile('file')){
-    
-    return Response::json([
-      'respuesta' => true
-    ]);
+  $fuecs = DB::table('fuecs')
+  ->leftjoin('operadores', 'operadores.id', '=', 'fuecs.fk_operador')
+  ->leftjoin('vehiculos', 'vehiculos.id', '=', 'fuecs.fk_vehiculo')
+  ->leftjoin('rutas_fuec', 'rutas_fuec.id', '=', 'fuecs.fk_rutas_fuec')
+  ->leftjoin('contratos_fuec', 'contratos_fuec.id', '=', 'fuecs.fk_contratos')
+  ->leftjoin('tipos', 'tipos.id', '=', 'contratos_fuec.fk_objeto_contrato')
+  ->leftjoin('tipos as t2', 't2.id', '=', 'vehiculos.marca')
+  ->leftjoin('tipos as t3', 't3.id', '=', 'vehiculos.fk_clase_vehiculo')
+  ->select('fuecs.*', 'vehiculos.placa', 'vehiculos.codigo_interno', 'vehiculos.modelo', 'vehiculos.numero_tarjeta_operacion', 'operadores.nombres', 'operadores.apellidos', 'operadores.identificacion as cedula', 'operadores.vigencia_licencia', 'rutas_fuec.origen', 'rutas_fuec.destino', 'contratos_fuec.id as contrato', 'contratos_fuec.nombre as razonsocial', 'contratos_fuec.identificacion', 'tipos.nombre as objeto_contrato', 't2.nombre as marca', 't3.nombre as clase')
+  ->where('fuecs.id', 1)
+  ->first();
 
-  }else{
+  $data = [
+    'titulo' => 'Styde.net',
+    'fuec' => $fuecs
+  ];
 
-    return Response::json([
-      'respuesta' => false
-    ]);
+  $pdf = \PDF::loadView('contratos.fuec.documento_pdf', $data);
 
-  }
+  return $pdf->setPaper('legal')->stream('Fuec-1.pdf');
+
+});
+
+Route::get('/prueba', function (Request $request) {
+
+  $fuecs = DB::table('fuecs')
+  ->leftjoin('operadores', 'operadores.id', '=', 'fuecs.fk_operador')
+  ->leftjoin('vehiculos', 'vehiculos.id', '=', 'fuecs.fk_vehiculo')
+  ->leftjoin('rutas_fuec', 'rutas_fuec.id', '=', 'fuecs.fk_rutas_fuec')
+  ->leftjoin('contratos_fuec', 'contratos_fuec.id', '=', 'fuecs.fk_contratos')
+  ->leftjoin('tipos', 'tipos.id', '=', 'contratos_fuec.fk_objeto_contrato')
+  ->leftjoin('tipos as t2', 't2.id', '=', 'vehiculos.marca')
+  ->leftjoin('tipos as t3', 't3.id', '=', 'vehiculos.fk_clase_vehiculo')
+  ->select('fuecs.*', 'vehiculos.placa', 'vehiculos.codigo_interno', 'vehiculos.modelo', 'vehiculos.numero_tarjeta_operacion', 'operadores.nombres', 'operadores.apellidos', 'operadores.identificacion as cedula', 'operadores.vigencia_licencia', 'rutas_fuec.origen', 'rutas_fuec.destino', 'contratos_fuec.id as contrato', 'contratos_fuec.nombre as razonsocial', 'contratos_fuec.identificacion', 'tipos.nombre as objeto_contrato', 't2.nombre as marca', 't3.nombre as clase')
+  ->where('fuecs.id', 1)
+  ->first();
+
+  $data = [
+    'titulo' => 'Styde.net',
+    'fuec' => $fuecs
+  ];
+
+  $pdf = \PDF::loadView('contratos.fuec.documento_pdf', $data);
+
+  return $pdf->setPaper('legal')->download('Fuec-1.pdf');
+
+});
+
+Route::get('/stream', function (Request $request) {
+
+  $fuecs = DB::table('fuecs')
+  ->leftjoin('operadores', 'operadores.id', '=', 'fuecs.fk_operador')
+  ->leftjoin('vehiculos', 'vehiculos.id', '=', 'fuecs.fk_vehiculo')
+  ->leftjoin('rutas_fuec', 'rutas_fuec.id', '=', 'fuecs.fk_rutas_fuec')
+  ->leftjoin('contratos_fuec', 'contratos_fuec.id', '=', 'fuecs.fk_contratos')
+  ->leftjoin('tipos', 'tipos.id', '=', 'contratos_fuec.fk_objeto_contrato')
+  ->leftjoin('tipos as t2', 't2.id', '=', 'vehiculos.marca')
+  ->leftjoin('tipos as t3', 't3.id', '=', 'vehiculos.fk_clase_vehiculo')
+  ->select('fuecs.*', 'vehiculos.placa', 'vehiculos.codigo_interno', 'vehiculos.modelo', 'vehiculos.numero_tarjeta_operacion', 'operadores.nombres', 'operadores.apellidos', 'operadores.identificacion as cedula', 'operadores.vigencia_licencia', 'rutas_fuec.origen', 'rutas_fuec.destino', 'contratos_fuec.id as contrato', 'contratos_fuec.nombre as razonsocial', 'contratos_fuec.identificacion', 'tipos.nombre as objeto_contrato', 't2.nombre as marca', 't3.nombre as clase')
+  ->where('fuecs.id', 1)
+  ->first();
+
+  $data = [
+    'titulo' => 'Styde.net',
+    'fuec' => $fuecs
+  ];
+
+  $pdf = \PDF::loadView('contratos.fuec.documento_pdf', $data);
+
+  return $pdf->setPaper('legal')->stream('archivo.pdf');
 
 });
 

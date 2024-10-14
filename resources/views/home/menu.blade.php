@@ -25,7 +25,7 @@
             </li>
             <li class="nav-item">
                 <a href="{{url('ciudades')}}" class="nav-link align-middle px-0">
-                    <i class="fs-4 bi-briefcase"></i> <span class="ms-1 d-none d-sm-inline">Ciudades</span>
+                    <i class="fs-4 bi-flag"></i> <span class="ms-1 d-none d-sm-inline">Ciudades</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -33,10 +33,11 @@
                     <i class="fs-4 bi-person-raised-hand"></i> <span class="ms-1 d-none d-sm-inline">Contratistas</span>
                 </a>
             </li>
-            <!--<li>
-                <a href="{{url('fuec')}}" class="nav-link px-0 align-middle">
-                    <i class="fs-4 bi-file-earmark-pdf-fill"></i> <span class="ms-1 d-none d-sm-inline">Fuec</span></a>
-            </li>-->
+            <li class="nav-item">
+                <a href="{{url('listadodeopradores')}}" class="nav-link align-middle px-0">
+                    <i class="fs-4 bi-person-raised-hand"></i> <span class="ms-1 d-none d-sm-inline">Operadores</span>
+                </a>
+            </li>
 
             <li class="nav-item">
 

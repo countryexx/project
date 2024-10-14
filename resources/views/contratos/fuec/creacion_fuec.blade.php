@@ -82,7 +82,14 @@
                                               {{$fuec->fecha_inicio}} - {{$fuec->fecha_fin}}
                                             </td>
                                             <td>
-                                              <i class="fs-3 bi-arrow-down-circle-fill"></i> <i style="margin-left: 10px" class="fs-3 bi-send-check"></i> <i style="margin-left: 10px" class="fs-3 bi-eye"></i>
+                                              
+                                              <a href="{{url('prueba')}}"><i class="fs-3 bi-arrow-down-circle-fill download" ></i></a>
+                                              
+
+                                              <i style="margin-left: 10px" class="fs-3 bi-send-check"></i> 
+
+                                              <a href="{{url('stream')}}" target="_blank"><i style="margin-left: 10px" class="fs-3 bi-eye"></i></a>
+                                              
                                             </td>
                                         </tr>
                                         <?php $cont++; ?>
@@ -273,6 +280,20 @@
         });
 
       }
+
+    })
+
+    $('.download').click(function() {
+
+      $.ajax({
+        url: 'prueba',
+        method: 'post',
+        data: {"_token": "{{ csrf_token() }}"}
+      }).done(function(data){
+
+        
+
+      });
 
     })
 
