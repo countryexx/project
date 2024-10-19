@@ -649,12 +649,18 @@ class PropietariosController extends Controller
                 $pension_pdf = $request->pension_pdf;
                 $compensacion_pdf = $request->compensacion_pdf;
 
+                $arreglo = [
+                    'proceso' => 'OPERADOR CREADO',
+                    'usuario' => Auth::user()->nombres.' '.Auth::user()->apellidos,
+                    'fecha' => date('Y-m-d H:i:s'),
+                ];
+                
+
                 $operador = new Operador;
                 $operador->identificacion = $identificacion;
                 $operador->nombres = $nombre;
                 $operador->apellidos = $apellido;
                 $operador->correo = $correo;
-                //$operador->clave = $celular;
                 $operador->fecha_nacimiento = $fecha_nacimiento;
                 $operador->estado_civil = $estado_civil;
                 $operador->genero = $genero;
@@ -665,6 +671,7 @@ class PropietariosController extends Controller
                 $operador->cantidad_hijos = $hijos;
                 $operador->vigencia_licencia = $fecha_licencia;
                 $operador->vigencia_seguridad_social = $fecha_seguridad_social;
+                $operador->historico = '['.json_encode($arreglo).']';
                 
                 if ($request->hasFile('eps_pdf')){
 
@@ -822,6 +829,9 @@ class PropietariosController extends Controller
             $id = $request->id;
             $operador = $request->operador;
 
+            $operator = Operador::find($operador);
+            $idOld = $operator->fk_contratista;
+
             $update = DB::table('operadores')
             ->where('id', $operador)
             ->update([
@@ -829,6 +839,47 @@ class PropietariosController extends Controller
             ]);
 
             if($update) {
+
+                $nombreOld = DB::table('contratistas')
+                ->select('id', 'nombre')
+                ->where('id', $idOld)
+                ->first();
+
+                $nombreNew = DB::table('contratistas')
+                ->select('id', 'nombre')
+                ->where('id', $id)
+                ->first();
+
+                if ($operator->historico!=null) {
+
+                    $cambios = json_decode($operator->historico);
+
+                    $arreglo = [
+                        'proceso' => 'OPERADOR CAMBIADO DE <b>'.$nombreOld->nombre.'</b> A <b>'.$nombreNew->nombre.'</b>',
+                        'usuario' => Auth::user()->nombres.' '.Auth::user()->apellidos,
+                        'fecha' => date('Y-m-d H:i:s')
+                    ];
+
+                    array_push($cambios, $arreglo);
+
+                    $operator->historico = $cambios;
+                    $operator->save();
+
+                    json_encode($cambios);
+
+                }else{
+
+                    $arreglo = [
+                        'proceso' => 'OPERADOR CAMBIADO DE <b>'.$nombreOld->nombre.'</b> A <b>'.$nombreNew->nombre.'</b>',
+                        'usuario' => Auth::user()->nombres.' '.Auth::user()->apellidos,
+                        'fecha' => date('Y-m-d H:i:s')
+                    ];
+
+                    $operator->historico = '['.json_encode($arreglo).']';
+                    $operator->save();
+
+                }
+
 
                 return Response::json([
                     'respuesta' => true,
@@ -861,12 +912,53 @@ class PropietariosController extends Controller
 
             $id = $request->id;
             $value = $request->value;
+            $motivo = strtoupper($request->motivo);
 
-            $update = DB::table('operadores')
-            ->where('id', $id)
-            ->update([
-                'fk_estado' => intval($value)
-            ]);
+            $text = "ACTIVADO";
+
+            if($motivo!=null) {
+                $text = "INACTIVADO POR MOTIVO: <b>".$motivo.'</b>';
+            }
+
+            $operator = Operador::find($id);
+
+            if ($operator->historico!=null) {
+
+                $cambios = json_decode($operator->historico);
+
+                $arreglo = [
+                    'proceso' => 'OPERADOR '.$text.'',
+                    'usuario' => Auth::user()->nombres.' '.Auth::user()->apellidos,
+                    'fecha' => date('Y-m-d H:i:s')
+                ];
+
+                array_push($cambios, $arreglo);
+
+                $operator->historico = $cambios;
+                $operator->fk_estado = intval($value);
+                if($motivo!=null) {
+                    $operator->motivo_bloqueado = $motivo;
+                }
+                $operator->save();
+
+                json_encode($cambios);
+
+            }else{
+
+                $arreglo = [
+                    'proceso' => 'OPERADOR '.$text.'',
+                    'usuario' => Auth::user()->nombres.' '.Auth::user()->apellidos,
+                    'fecha' => date('Y-m-d H:i:s')
+                ];
+
+                $operator->historico = '['.json_encode($arreglo).']';
+                $operator->fk_estado = intval($value);
+                if($motivo!=null) {
+                    $operator->motivo_bloqueado = $motivo;
+                }
+                $operator->save();
+
+            }
 
             return Response::json([
                 'respuesta' => true,
@@ -876,5 +968,31 @@ class PropietariosController extends Controller
 
         }
 
+    }
+
+    public function historicooperador(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $id = $request->id;
+
+            $operador = DB::table('operadores')
+            ->select('id', 'historico')
+            ->where('id', $id)
+            ->first();
+
+            return Response::json([
+                'respuesta' => true,
+                'operador' => $operador
+            ]);
+
+        }
     }
 }

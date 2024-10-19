@@ -169,6 +169,8 @@
 
                                           <i title="Cambiar de Proveedor" class="fs-5 bi-arrow-left-right cambiar_proveedor" id-contratista="{{$operador->id_contratista}}" nombre-contratista="{{$operador->contratista}}" id-operador="{{$operador->id}}"></i>
 
+                                          <i data-nombre="{{$operador->nombres.' '.$operador->apellidos}}" data-id="{{$operador->id}}" class="fs-5 bi-eye historico"></i>
+
                                         </td>
                                     </tr>
                                     <?php $cont++; ?>
@@ -244,6 +246,50 @@
                         <div class="modal-footer">
                           <button id="asignar" type="button" class="btn btn-success">Guardar <i class="bi bi-floppy2-fill"></i></button>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="modal fade" id="modal_historico" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="staticBackdropLabel">Histórico de Operador: <span class="nombre_operador"></span></h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <div class="form-control">
+                              <div id="message" class="toast align-items-right text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="d-flex">
+                                  <div class="toast-body">
+                                    <span id="text"></span>
+                                  </div>
+                                  <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                              </div>
+
+                              <div class="container text-left">
+                                  
+                                  <div class="row align-items-center" style="margin-top: 10px">
+                                    <div class="col">
+                                      <table class="table table-hover" id="tabla_historico">
+                                        <thead>
+                                          <th>#</th>
+                                          <th>Proceso</th>
+                                          <th>Fecha</th>
+                                          <th>Usuario</th>
+                                        </thead>
+                                        <tbody>
+                                          
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                      
+                              </div>
+                          </div>
+                        </div>
+                        
                       </div>
                     </div>
                   </div>
@@ -606,51 +652,160 @@
         var titulo = 'Inactivar'
         var body = 'Quieres Inactivar a <b>'+nombre+'</b>?'
         value = 2
+
+        $.confirm({
+          title: titulo,
+          content: '' +
+          '<form action="" class="formName">' +
+          '<label>'+body+'</label>' +
+          '<div class="form-group">' +
+          '<label>Escribe el motivo</label>' +
+          '<input type="text" placeholder="..." class="motivo form-control" required />' +
+          '</div>' +
+          '</form>',
+          buttons: {
+              formSubmit: {
+                  text: 'Inactivar',
+                  btnClass: 'btn-danger',
+                  action: function () {
+
+                      var motivo = this.$content.find('.motivo').val();
+
+                      if(!motivo){
+                          $.alert('Ingresa el motivo...');
+                          return false;
+                      }
+
+
+                      $.ajax({
+                        url: 'activacionoperadores',
+                        method: 'post',
+                        data: {id: id, value: value, motivo: motivo, "_token": "{{ csrf_token() }}"}
+                      }).done(function(data){
+
+                        if(data.respuesta==true){
+
+                          responseTrue('Realizado!', data.mensaje)
+
+                        }else if(data.respuesta==false) {
+
+                          errorAlert('Atención!', data.mensaje)
+
+                        }else if(data.respuesta=='logout') {
+                          
+                          logoutAlert('Sesión Caducada!',data.mensaje)
+
+                        }
+
+                      });
+                  }
+              },
+              cancelar: function () {
+                  //close
+              },
+          },
+          onContentReady: function () {
+              // bind to events
+              var jc = this;
+              this.$content.find('form').on('submit', function (e) {
+                  // if the user submits the form by pressing enter in the field.
+                  e.preventDefault();
+                  jc.$$formSubmit.trigger('click'); // reference the button and click it
+              });
+          }
+        });
+
       }else{
         var color = 'green'
         var titulo = 'Activar'
         var body = 'Quieres activar a <b>'+nombre+'</b>?'
         value = 1
+
+        $.confirm({
+          title: titulo,
+          content: body,
+          type: color,
+          typeAnimated: true,
+          buttons: {
+              tryAgain: {
+                  text: titulo,
+                  btnClass: 'btn-'+color+'',
+                  action: function(){
+
+                    $.ajax({
+                      url: 'activacionoperadores',
+                      method: 'post',
+                      data: {id: id, value: value, motivo: null, "_token": "{{ csrf_token() }}"}
+                    }).done(function(data){
+
+                      if(data.respuesta==true){
+
+                        responseTrue('Realizado!', data.mensaje)
+
+                      }else if(data.respuesta==false) {
+
+                        errorAlert('Atención!', data.mensaje)
+
+                      }else if(data.respuesta=='logout') {
+                        
+                        logoutAlert('Sesión Caducada!',data.mensaje)
+
+                      }
+
+                    });
+
+                  }
+              },
+              cancelar: function () {
+              }
+          }
+        });
+
       }
-      
-      $.confirm({
-        title: titulo,
-        content: body,
-        type: color,
-        typeAnimated: true,
-        buttons: {
-            tryAgain: {
-                text: titulo,
-                btnClass: 'btn-'+color+'',
-                action: function(){
 
-                  $.ajax({
-                    url: 'activacionoperadores',
-                    method: 'post',
-                    data: {id: id, value: value, "_token": "{{ csrf_token() }}"}
-                  }).done(function(data){
+    })
 
-                    if(data.respuesta==true){
+    $('#operadores').on('click', '.historico', function(event) {
 
-                      responseTrue('Realizado!', data.mensaje)
+      var nombre = $(this).attr('data-nombre')
+      var id = $(this).attr('data-id')
 
-                    }else if(data.respuesta==false) {
+      $('.nombre_operador').html(nombre)
 
-                      errorAlert('Atención!', data.mensaje)
+      $.ajax({
+        url: 'historicooperador',
+        method: 'post',
+        data: {id: id, "_token": "{{ csrf_token() }}"}
+      }).done(function(data){
 
-                    }else if(data.respuesta=='logout') {
-                      
-                      logoutAlert('Sesión Caducada!',data.mensaje)
+        if(data.respuesta==true){
 
-                    }
+          var $json = JSON.parse(data.operador.historico);
 
-                  });
+          var html;
+          var contador = 1;
 
-                }
-            },
-            cerrar: function () {
-            }
+          for(i in $json){
+
+            html += '<tr>'+
+                            '<td>'+contador+'</td>'+
+                            '<td>'+$json[i].proceso+'</td>'+
+                            '<td>'+$json[i].fecha+'</td>'+
+                            '<td>'+$json[i].usuario+'</td>'+
+                          '</tr>';
+                          contador++;
+          }
+
+          $('#tabla_historico tbody').html('').append(html);
+
+          $('#modal_historico').modal('show')
+
+        }else if(data.respuesta=='logout') {
+          
+          logoutAlert('Sesión Caducada!',data.mensaje)
+
         }
+
       });
 
     })

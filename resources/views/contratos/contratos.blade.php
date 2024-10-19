@@ -147,6 +147,17 @@
                                         <b class="etiqueta">Nombre</b>
                                         <input id="nombre" class="form-control form-control-md" type="text" placeholder="Escribe aquí" aria-label=".form-control-lg example">
                                       </div>
+
+                                      <div class="col">
+                                        <b class="etiqueta">Sede</b>
+                                        <select class="form-select" aria-label="Default select example" id="sedec">
+                                            <option value="0" selected>Seleccionar</option>
+                                            @foreach($sedes as $sede)
+                                              <option value="{{$sede->id}}">{{$sede->nombre}}</option>
+                                            @endforeach
+                                        </select>
+                                      </div>
+
                                     </div>
 
                                     <div class="row align-items-center pn" style="margin-top: 10px">
@@ -592,6 +603,7 @@
     	var id = $(this).attr('data-id')
 
     	var nombre = $('#nombre').val()
+        var sede = $('#sedec').val()
     	var identificacion = $('#identificacion').val()
     	var direccion = $('#direccionn').val()
     	var correo = $('#correo').val()
@@ -601,20 +613,32 @@
 
     	if(id != 2) {
 
+            var text = ''
+
     		if(nombre=='') {
-    			sw = 1
-    			errorAlert('Campos vacíos!', 'Debes ingresar el nombre')
+    			text += 'Debes ingresar el nombre<br>'
     		}
+
+            if(sede=='0') {
+                text += 'Debes seleccionar la sede<br>'
+            }
+
+            sw = 1
+
+            errorAlert('Campos vacíos!', text)
 
     	}else{
 
-    		if(nombre=='' || identificacion=='' || direccion=='' || correo=='' || !validateEmail(correo) || celular=='') {
+    		if(nombre=='' || sede=='0' || identificacion=='' || direccion=='' || correo=='' || !validateEmail(correo) || celular=='') {
     			
     			var text = ''
 
     			if(nombre=='') {
     				text += 'Debes ingresar el nombre<br>'
     			}
+                if(sede=='0') {
+                    text += 'Debes seleccionar la sede<br>'
+                }
     			if(identificacion=='') {
     				text += 'Debes ingresar la identificación<br>'
     			}
@@ -644,7 +668,7 @@
     		$.ajax({
 	          url: 'contratos/nuevocentro',
 	          method: 'post',
-	          data: {nombre: nombre, identificacion: identificacion, direccion: direccion, correo: correo, celular: celular, id: id, "_token": "{{ csrf_token() }}"}
+	          data: {nombre: nombre, sede: sede, identificacion: identificacion, direccion: direccion, correo: correo, celular: celular, id: id, "_token": "{{ csrf_token() }}"}
 	        }).done(function(data){
 
 	          if(data.respuesta==true){

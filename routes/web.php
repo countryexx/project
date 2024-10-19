@@ -69,6 +69,7 @@ Route::post('/filtraropradores', [PropietariosController::class, 'filtraroprador
 Route::post('/listarproveedores', [PropietariosController::class, 'listarproveedores']);
 Route::post('/asignarcontratista', [PropietariosController::class, 'asignarcontratista']);
 Route::post('/activacionoperadores', [PropietariosController::class, 'activacionoperadores']);
+Route::post('/historicooperador', [PropietariosController::class, 'historicooperador']);
 
 Route::get('/contratos', [ContratosController::class, 'contratos']);
 Route::post('/contratos/consultarcontrato', [ContratosController::class, 'consultarcontrato']);
@@ -79,6 +80,8 @@ Route::post('/contratos/nuevocentro', [ContratosController::class, 'nuevocentro'
 Route::get('/contratosyrutas', [ContratosController::class, 'contratosyrutas']);
 Route::post('/nuevarutafuec', [ContratosController::class, 'nuevarutafuec']);
 Route::get('/fuec', [ContratosController::class, 'fuec']);
+Route::post('/vehiculosoperadores', [ContratosController::class, 'vehiculosoperadores']);
+Route::post('/operadoresdocs', [ContratosController::class, 'operadoresdocs']);
 Route::post('/nuevofuec', [ContratosController::class, 'nuevofuec']);
 
 

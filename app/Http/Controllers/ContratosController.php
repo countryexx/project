@@ -84,7 +84,7 @@ class ContratosController extends Controller
 
                 return Response::json([
                     'respuesta' => false,
-                    'mensaje' => 'Ya existe un contrato con el nit -'.$identificacion.'-'
+                    'mensaje' => 'Ya existe un contrato con el nit -'.$nit.'-'
                 ]);
 
             }else{
@@ -253,6 +253,7 @@ class ContratosController extends Controller
 
         	$id = $request->id;
             $nombre = strtoupper($request->nombre);
+            $sede = strtoupper($request->sede);
             $identificacion = $request->identificacion;
             $direccion = strtoupper($request->direccion);
             $celular = $request->celular;
@@ -260,6 +261,7 @@ class ContratosController extends Controller
 
             $centro = new Centrodecosto;
             $centro->nombre = $nombre;
+            $centro->fk_sede = $sede;
             $centro->identificacion = $identificacion;
             $centro->direccion = $direccion;
             $centro->correo = $correo;
@@ -392,6 +394,64 @@ class ContratosController extends Controller
         }
     }
 
+    public function vehiculosoperadores(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $vehiculo = $request->vehiculo;
+
+            $queryVehiculo = "select id, fk_contratista, datediff(vigencia_tarjeta_operacion, now()) as tarjeta_operacion, vigencia_tarjeta_operacion, datediff(vigencia_soat, now()) as soat, vigencia_soat, datediff(vigencia_tecnomecanica, now()) as tecnomecanica, vigencia_tecnomecanica, datediff(vigencia_poliza_contractual, now()) as poliza_contractual, vigencia_poliza_contractual, datediff(vigencia_poliza_extracontractual, now()) as poliza_extra_contractual, vigencia_poliza_extracontractual, datediff(vigencia_revision_preventiva, now()) as preventiva, vigencia_revision_preventiva from vehiculos where id = ".$vehiculo." ";
+
+            $consultaVehiculo = DB::select($queryVehiculo);
+
+            $operadores = DB::table('operadores')
+            ->select('id', 'nombres', 'apellidos', 'celular')
+            ->where('fk_contratista', $consultaVehiculo[0]->fk_contratista)
+            ->get();
+
+            return Response::json([
+                'respuesta' => true,
+                'operadores' => $operadores,
+                'vehiculo' => $consultaVehiculo[0]
+            ]);
+
+        }
+
+    }
+
+    public function operadoresdocs(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $operador = $request->operador;
+
+            $queryOperador = "select id, datediff(vigencia_licencia, now()) as licencia, vigencia_licencia, datediff(vigencia_seguridad_social, now()) as seguridad_social, vigencia_seguridad_social from operadores where id = ".$operador." ";
+
+            $consultaOperador = DB::select($queryOperador);
+
+            return Response::json([
+                'respuesta' => true,
+                'operador' => $consultaOperador[0]
+            ]);
+
+        }
+
+    }
+
     public function nuevofuec(Request $request) {
 
     	if (!Auth::check()){
@@ -409,13 +469,63 @@ class ContratosController extends Controller
         	$operador = $request->operador;
         	$vehiculo = $request->vehiculo;
 
+            $queryVehiculo = "select id, datediff(vigencia_tarjeta_operacion, now()) as tarjeta_operacion, vigencia_tarjeta_operacion, datediff(vigencia_soat, now()) as soat, vigencia_soat, datediff(vigencia_tecnomecanica, now()) as tecnomecanica, vigencia_tecnomecanica, datediff(vigencia_poliza_contractual, now()) as poliza_contractual, vigencia_poliza_contractual, datediff(vigencia_poliza_extracontractual, now()) as poliza_extra_contractual, vigencia_poliza_extracontractual, datediff(vigencia_revision_preventiva, now()) as preventiva, vigencia_revision_preventiva from vehiculos where id = ".$request->vehiculo." ";
+
+            $consultaVehiculo = DB::select($queryVehiculo);
+
+            $queryOperador = "select id, datediff(vigencia_licencia, now()) as licencia, vigencia_licencia, datediff(vigencia_seguridad_social, now()) as seguridad_social, vigencia_seguridad_social from operadores where id = ".$request->operador." ";
+
+            $consultaOperador = DB::select($queryOperador);
+
+            $licencia = $consultaOperador[0]->licencia;
+            $seguridad_social = $consultaOperador[0]->seguridad_social;
+
+            $tarjeta_operacion = $consultaVehiculo[0]->tarjeta_operacion;
+            $soat = $consultaVehiculo[0]->soat;
+            $tecnomecanica = $consultaVehiculo[0]->tecnomecanica;
+            $poliza_contractual = $consultaVehiculo[0]->poliza_contractual;
+            $poliza_extra_contractual = $consultaVehiculo[0]->poliza_extra_contractual;
+            $preventiva = $consultaVehiculo[0]->preventiva;
+
+            $fechaVencimiento = $licencia;
+            $fecha = $consultaOperador[0]->vigencia_licencia;
+
+            if($seguridad_social<$fechaVencimiento) {
+                $fechaVencimiento = $seguridad_social;
+                $fecha = $consultaOperador[0]->vigencia_seguridad_social;
+            }
+            if($tarjeta_operacion<$fechaVencimiento) {
+                $fechaVencimiento = $tarjeta_operacion;
+                $fecha = $consultaVehiculo[0]->vigencia_tarjeta_operacion;
+            }
+            if($soat<$fechaVencimiento) {
+                $fechaVencimiento = $soat;
+                $fecha = $consultaVehiculo[0]->vigencia_soat;
+            }
+            if($tecnomecanica<$fechaVencimiento) {
+                $fechaVencimiento = $tecnomecanica;
+                $fecha = $consultaVehiculo[0]->vigencia_tecnomecanica;
+            }
+            if($poliza_contractual<$fechaVencimiento) {
+                $fechaVencimiento = $poliza_contractual;
+                $fecha = $consultaVehiculo[0]->vigencia_poliza_contractual;
+            }
+            if($poliza_extra_contractual<$fechaVencimiento) {
+                $fechaVencimiento = $poliza_extra_contractual;
+                $fecha = $consultaVehiculo[0]->vigencia_poliza_extracontractual;
+            }
+            if($preventiva<$fechaVencimiento) {
+                $fechaVencimiento = $preventiva;
+                $fecha = $consultaVehiculo[0]->vigencia_revision_preventiva;
+            }
+
         	$fuec = new Fuec;
         	$fuec->fk_operador = $operador;
         	$fuec->fk_vehiculo = $vehiculo;
         	$fuec->fk_rutas_fuec = $ruta;
         	$fuec->fk_contratos = $contrato;
-        	$fuec->fecha_inicio = '2024-10-08';
-        	$fuec->fecha_fin = '2024-10-31';
+        	$fuec->fecha_inicio = date('Y-m-d');
+        	$fuec->fecha_fin = $fecha;
         	$fuec->save();
 
 

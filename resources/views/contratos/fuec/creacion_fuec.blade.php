@@ -126,6 +126,7 @@
                                   <div class="row align-items-center" style="margin-top: 10px">
                                     <div class="col">
                                       <b class="etiqueta">Vehículo</b>
+                                      <small role="alert" class="text-danger veh_text"></small>
                                       <select class="form-select" aria-label="Default select example" id="vehiculo">
                                         <option value="0" selected>Seleccionar</option>
                                         @foreach($vehiculos as $vehiculo)
@@ -135,11 +136,9 @@
                                     </div>
                                     <div class="col">
                                       <b class="etiqueta">Operador</b>
+                                      <small role="alert" class="text-danger opr_text visually-hidden"></small>
                                       <select class="form-select" aria-label="Default select example" id="operador">
-                                        <option value="0" selected>Seleccionar</option>
-                                        @foreach($operadores as $operador)
-                                          <option value="{{$operador->id}}">{{$operador->nombres.' '.$operador->apellidos}}</option>
-                                        @endforeach
+                                        <option>-</option>
                                       </select>
                                     </div>
                                   </div>
@@ -174,6 +173,11 @@
                       </div>
                     </div>
                   </div>
+
+                  @include('contratos.modales.documentacion_vencida_vehiculo')
+
+                  @include('contratos.modales.documentacion_vencida_operador')
+
             </div>
 
         </div>
@@ -296,6 +300,192 @@
       });
 
     })
+
+    $('#vehiculo').change(function () {
+
+        var vehiculo = $(this).val();
+
+        if(vehiculo==='0'){
+
+            $('#operador').attr('disabled','disabled').val(0);
+
+        }else{
+
+          $.ajax({
+              method: 'post',
+              url: 'vehiculosoperadores',
+              data: {vehiculo: vehiculo, "_token": "{{ csrf_token() }}"},
+              dataType: 'json',
+              success: function (data) {
+
+                if(data.respuesta == true){
+
+                  var operators = '';
+                  var vehiculosHtml = '';
+                  var telefono = '';
+
+                  for(i in data.operadores) {
+
+                    if(data.operadores[i].celular!='' && data.operadores[i].celular!=null){
+                      telefono = data.operadores[i].celular;
+                    }else{
+                      telefono = 'NO REGISTRADO';
+                    }
+
+                    if(i==0) {
+                      var selected = 'selected'
+                    }else{
+                      var selected = ''
+                    }
+
+                    operators += '<option value="'+data.operadores[i].id+'">'+data.operadores[i].nombres+' '+data.operadores[i].apellidos+' / '+telefono+'</option>';
+                  }
+
+                  $('#operador').removeAttr('disabled');
+
+                  $('#operador').html('').append('<option value="0">Seleccionar</option>'+operators);
+
+                  var switchs = 0
+
+                  var classOperacion = 'btn btn-success btn-sm'
+                  var iconOperacion = '<i class="bi bi-calendar-check"></i>'
+                  if(data.vehiculo.tarjeta_operacion<1) {
+                    classOperacion = 'btn btn-danger btn-sm'
+                    iconOperacion = '<i class="bi bi-exclamation-octagon"></i>'
+                    switchs = 1
+                  }
+                  $('.fecha_tarjeta_operacion').html(data.vehiculo.vigencia_tarjeta_operacion).removeClass('btn btn-danger btn-sm').addClass(classOperacion)
+                  $('.dias_tarjeta_operacion').html(data.vehiculo.tarjeta_operacion+' '+iconOperacion).removeClass('btn btn-danger btn-sm').addClass(classOperacion)
+
+                  var classSoat = 'btn btn-success btn-sm'
+                  var iconSoat = '<i class="bi bi-calendar-check"></i>'
+                  if(data.vehiculo.soat<1) {
+                    classSoat = 'btn btn-danger btn-sm'
+                    iconSoat = '<i class="bi bi-exclamation-octagon"></i>'
+                    switchs = 1
+                  }
+                  $('.fecha_soat').html(data.vehiculo.vigencia_soat).removeClass('btn btn-danger btn-sm').addClass(classSoat)
+                  $('.dias_soat').html(data.vehiculo.soat+' '+iconSoat).removeClass('btn btn-danger btn-sm').addClass(classSoat)
+
+                  var classTecno = 'btn btn-success btn-sm'
+                  var iconTecno = '<i class="bi bi-calendar-check"></i>'
+                  if(data.vehiculo.tecnomecanica<1) {
+                    classTecno = 'btn btn-danger btn-sm'
+                    iconTecno = '<i class="bi bi-exclamation-octagon"></i>'
+                    switchs = 1
+                  }
+                  $('.fecha_tecno').html(data.vehiculo.vigencia_tecnomecanica).removeClass('btn btn-danger btn-sm').addClass(classTecno)
+                  $('.dias_tecno').html(data.vehiculo.tecnomecanica+' '+iconTecno).removeClass('btn btn-danger btn-sm').addClass(classTecno)
+
+                  var classContra = 'btn btn-success btn-sm'
+                  var iconContra = '<i class="bi bi-calendar-check"></i>'
+                  if(data.vehiculo.poliza_contractual<1) {
+                    classContra = 'btn btn-danger btn-sm'
+                    iconContra = '<i class="bi bi-exclamation-octagon"></i>'
+                    switchs = 1
+                  }
+                  $('.fecha_contra').html(data.vehiculo.vigencia_poliza_contractual).removeClass('btn btn-danger btn-sm').addClass(classContra)
+                  $('.dias_contra').html(data.vehiculo.poliza_contractual+' '+iconContra).removeClass('btn btn-danger btn-sm').addClass(classContra)
+
+                  var classExtra = 'btn btn-success btn-sm'
+                  var iconExtra = '<i class="bi bi-calendar-check"></i>'
+                  if(data.vehiculo.poliza_extra_contractual<1) {
+                    classExtra = 'btn btn-danger btn-sm'
+                    iconExtra = '<i class="bi bi-exclamation-octagon"></i>'
+                    switchs = 1
+                  }
+                  $('.fecha_extra').html(data.vehiculo.vigencia_poliza_extracontractual).removeClass('btn btn-danger btn-sm').addClass(classExtra)
+                  $('.dias_extra').html(data.vehiculo.poliza_extra_contractual+' '+iconExtra).removeClass('btn btn-danger btn-sm').addClass(classExtra)
+
+                  var classPreventiva = 'btn btn-success btn-sm'
+                  var iconPreventiva = '<i class="bi bi-calendar-check"></i>'
+                  if(data.vehiculo.preventiva<1) {
+                    classPreventiva = 'btn btn-danger btn-sm'
+                    iconPreventiva = '<i class="bi bi-exclamation-octagon"></i>'
+                    switchs = 1
+                  }
+                  $('.fecha_preventiva').html(data.vehiculo.vigencia_revision_preventiva).removeClass('btn btn-danger btn-sm').addClass(classPreventiva)
+                  $('.dias_preventiva').html(data.vehiculo.preventiva+' '+iconPreventiva).removeClass('btn btn-danger btn-sm').addClass(classPreventiva)
+
+                  if(switchs == 1) {
+                    $('.veh_text').removeClass('visually-hidden').html('Documentos vencidos...')
+                    $('#modal_documentacion_vehiculo').modal('show')
+                  }else{
+                    $('.veh_text').addClass('visually-hidden').html('')
+                  }
+
+                }else if(data.respuesta == false){
+
+                  $('#operador').attr('disabled','disabled');
+
+                }
+
+              }
+          });
+        }
+        
+    });
+
+    $('#operador').change(function () {
+
+        var operador = $(this).val();
+
+        if(operador==='0'){
+            
+
+        }else{
+
+          $.ajax({
+              method: 'post',
+              url: 'operadoresdocs',
+              data: {operador: operador, "_token": "{{ csrf_token() }}"},
+              dataType: 'json',
+              success: function (data) {
+
+                if(data.respuesta == true){
+
+                  //$('#operador').removeAttr('disabled');
+
+                  var switchs = 0
+
+                  var classLicencia = 'btn btn-success btn-sm'
+                  var iconLicencia = '<i class="bi bi-calendar-check"></i>'
+                  if(data.operador.licencia<1) {
+                    classLicencia = 'btn btn-danger btn-sm'
+                    iconLicencia = '<i class="bi bi-exclamation-octagon"></i>'
+                    switchs = 1
+                  }
+                  $('.fecha_licencia').html(data.operador.vigencia_licencia).removeClass('btn btn-danger btn-sm').addClass(classLicencia)
+                  $('.dias_licencia').html(data.operador.licencia+' '+iconLicencia).removeClass('btn btn-danger btn-sm').addClass(classLicencia)
+
+                  var classSs = 'btn btn-success btn-sm'
+                  var iconSs = '<i class="bi bi-calendar-check"></i>'
+                  if(data.operador.seguridad_social<1) {
+                    classSs = 'btn btn-danger btn-sm'
+                    iconSs = '<i class="bi bi-exclamation-octagon"></i>'
+                    switchs = 1
+                  }
+                  $('.fecha_ss').html(data.operador.vigencia_seguridad_social).removeClass('btn btn-danger btn-sm').addClass(classSs)
+                  $('.dias_ss').html(data.operador.seguridad_social+' '+iconSs).removeClass('btn btn-danger btn-sm').addClass(classSs)
+
+                  if(switchs == 1) {
+                    $('.opr_text').removeClass('visually-hidden').html('Documentos vencidos...')
+                    $('#modal_documentacion_operador').modal('show')
+                  }else{
+                    $('.opr_text').addClass('visually-hidden').html('')
+                  }
+
+                }else if(data.respuesta == false){
+
+                  $('#operador').attr('disabled','disabled');
+
+                }
+
+              }
+          });
+        }
+        
+    });
 
     function responseTrue(titulo, body) {
 
