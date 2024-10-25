@@ -16,6 +16,7 @@ use App\Models\Contrato;
 use App\Models\ContratoFuec;
 use App\Models\Fuec;
 use App\Models\Centrodecosto;
+use App\Models\Trayecto;
 
 use DB;
 use View;
@@ -525,6 +526,7 @@ class ContratosController extends Controller
         	$fuec->fk_rutas_fuec = $ruta;
         	$fuec->fk_contratos = $contrato;
         	$fuec->fecha_inicio = date('Y-m-d');
+            $fuec->fk_user = Auth::user()->id;
         	$fuec->fecha_fin = $fecha;
         	$fuec->save();
 
@@ -703,6 +705,130 @@ class ContratosController extends Controller
 				]);
 
 			}*/
+
+        }
+
+    }
+
+    public function tarifas() {
+
+        if (!Auth::check()){
+
+            return view('auth.login');
+
+        }else{
+
+            $trayectos = DB::table('trayectos')
+            ->select('trayectos.*', 'users.nombres', 'users.apellidos', 'sedes.nombre as sede')
+            ->leftjoin('users', 'users.id', '=', 'trayectos.fk_user')
+            ->leftjoin('sedes', 'sedes.id', '=', 'trayectos.fk_sede')
+            ->get();
+
+            $sedes = DB::table('sedes')
+            ->get();
+
+            return View::make('contratos.tarifas')
+            ->with([
+                'trayectos' => $trayectos,
+                'sedes' => $sedes
+            ]);
+
+        }
+
+    }
+
+    public function nuevotrayecto(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $nombre = strtoupper($request->nombre);
+            $sede = $request->sede;
+
+            $trayecto = DB::table('trayectos')
+            ->insert([
+                'nombre' => $nombre,
+                'fk_user' => Auth::user()->id,
+                'fk_sede' => $sede
+            ]);
+
+            return Response::json([
+                'respuesta' => true,
+                'mensaje' => 'Trayecto creado correctamente!'
+            ]);
+
+        }
+
+    }
+
+    public function contratostarifas($id) {
+
+        if (!Auth::check()){
+
+            return view('auth.login');
+
+        }else{
+
+            $tarifas = "select t.id as id_trayecto, t2.id as id_tarifa, t.nombre as nombre_trayecto, t2.valor_suv_cliente, t2.valor_van_cliente, t2.valor_suv_proveedor, t2.valor_van_proveedor from trayectos t left join tarifas t2 on t.id = t2.fk_trayecto left join contratos c on c.id = t2.fk_cliente where c.id = ".$id."";
+            $tarifas = DB::select($tarifas);
+
+            //where c.id = ".$id."
+
+            $rz = DB::table('contratos')
+            ->select('id', 'razonsocial')
+            ->where('id', $id)
+            ->first();
+
+            return View::make('contratos.tarifario')
+            ->with([
+                'tarifas' => $tarifas,
+                'razonsocial' => $rz->razonsocial,
+                'id' => $id
+            ]);
+
+        }
+
+    }
+
+    public function nuevatarifa(Request $request) {
+
+        if (!Auth::check()){
+
+            return Response::json([
+                'respuesta' => 'logout',
+                'mensaje' => PropietariosController::MENSAJE_LOGOUT
+            ]);
+
+        }else{
+
+            $id = $request->id;
+            $fk_cliente = $request->fk_cliente;
+            $suv_cliente = $request->suv_cliente;
+            $van_cliente = $request->van_cliente;
+            $suv_contratista = $request->suv_contratista;
+            $van_contratista = $request->van_contratista;
+
+            $trayecto = DB::table('tarifas')
+            ->insert([
+                'valor_suv_cliente' => $suv_cliente,
+                'valor_van_cliente' => $van_cliente,
+                'valor_suv_proveedor' => $suv_contratista,
+                'valor_van_proveedor' => $van_contratista,
+                'fk_trayecto' => $id,
+                'fk_cliente' => $fk_cliente,
+                'fk_user' => Auth::user()->id
+            ]);
+
+            return Response::json([
+                'respuesta' => true,
+                'mensaje' => 'Tarifa creada correctamente!'
+            ]);
 
         }
 

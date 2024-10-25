@@ -24,6 +24,11 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="{{url('tarifas')}}" class="nav-link align-middle px-0">
+                    <i class="fs-4 bi-card-list"></i> <span class="ms-1 d-none d-sm-inline">Tarifas</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="{{url('ciudades')}}" class="nav-link align-middle px-0">
                     <i class="fs-4 bi-flag"></i> <span class="ms-1 d-none d-sm-inline">Ciudades</span>
                 </a>

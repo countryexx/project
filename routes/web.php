@@ -84,6 +84,11 @@ Route::post('/vehiculosoperadores', [ContratosController::class, 'vehiculosopera
 Route::post('/operadoresdocs', [ContratosController::class, 'operadoresdocs']);
 Route::post('/nuevofuec', [ContratosController::class, 'nuevofuec']);
 
+Route::get('/tarifas', [ContratosController::class, 'tarifas']);
+Route::post('/nuevotrayecto', [ContratosController::class, 'nuevotrayecto']);
+Route::get('/contratos/tarifas/{a}', [ContratosController::class, 'contratostarifas']);
+Route::post('/tarifas/nuevatarifa', [ContratosController::class, 'nuevatarifa']);
+
 
 
 Route::get('/ciudades', [ParamController::class, 'ciudades']);
@@ -115,7 +120,7 @@ Route::get('/hv', function (Request $request) {
 
 });
 
-Route::get('/prueba', function (Request $request) {
+Route::get('/fuec/download/{fuec_id}', function ($fuec_id) {
 
   $fuecs = DB::table('fuecs')
   ->leftjoin('operadores', 'operadores.id', '=', 'fuecs.fk_operador')
@@ -125,8 +130,9 @@ Route::get('/prueba', function (Request $request) {
   ->leftjoin('tipos', 'tipos.id', '=', 'contratos_fuec.fk_objeto_contrato')
   ->leftjoin('tipos as t2', 't2.id', '=', 'vehiculos.marca')
   ->leftjoin('tipos as t3', 't3.id', '=', 'vehiculos.fk_clase_vehiculo')
-  ->select('fuecs.*', 'vehiculos.placa', 'vehiculos.codigo_interno', 'vehiculos.modelo', 'vehiculos.numero_tarjeta_operacion', 'operadores.nombres', 'operadores.apellidos', 'operadores.identificacion as cedula', 'operadores.vigencia_licencia', 'rutas_fuec.origen', 'rutas_fuec.destino', 'contratos_fuec.id as contrato', 'contratos_fuec.nombre as razonsocial', 'contratos_fuec.identificacion', 'tipos.nombre as objeto_contrato', 't2.nombre as marca', 't3.nombre as clase')
-  ->where('fuecs.id', 1)
+  ->leftjoin('users', 'users.id', '=', 'fuecs.fk_user')
+  ->select('fuecs.*', 'vehiculos.placa', 'vehiculos.codigo_interno', 'vehiculos.modelo', 'vehiculos.numero_tarjeta_operacion', 'operadores.nombres', 'operadores.apellidos', 'operadores.identificacion as cedula', 'operadores.vigencia_licencia', 'rutas_fuec.origen', 'rutas_fuec.destino', 'contratos_fuec.id as contrato', 'contratos_fuec.nombre as razonsocial', 'contratos_fuec.identificacion', 'tipos.nombre as objeto_contrato', 't2.nombre as marca', 't3.nombre as clase', 'users.nombres as name', 'users.apellidos as last_name')
+  ->where('fuecs.id', $fuec_id)
   ->first();
 
   $data = [
@@ -134,13 +140,24 @@ Route::get('/prueba', function (Request $request) {
     'fuec' => $fuecs
   ];
 
-  $pdf = \PDF::loadView('contratos.fuec.documento_pdf', $data);
+  $contxt = stream_context_create([
+    'ssl' => [
+        'verify_peer' => FALSE,
+        'verify_peer_name' => FALSE,
+        'allow_self_signed' => TRUE,
+    ]
+  ]);
 
-  return $pdf->setPaper('legal')->download('Fuec-1.pdf');
+  $pdf = \PDF::setOptions(['isHTML5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+  $pdf->getDomPDF()->setHttpContext($contxt);
+
+  $pdf->loadView('contratos.fuec.documento_pdf', $data);
+
+  return $pdf->setPaper('legal')->download('Fuec-'.$fuec_id.'.pdf');
 
 });
 
-Route::get('/stream', function (Request $request) {
+Route::get('/fuec/stream/{fuec_id}', function ($fuec_id) {
 
   $fuecs = DB::table('fuecs')
   ->leftjoin('operadores', 'operadores.id', '=', 'fuecs.fk_operador')
@@ -150,8 +167,9 @@ Route::get('/stream', function (Request $request) {
   ->leftjoin('tipos', 'tipos.id', '=', 'contratos_fuec.fk_objeto_contrato')
   ->leftjoin('tipos as t2', 't2.id', '=', 'vehiculos.marca')
   ->leftjoin('tipos as t3', 't3.id', '=', 'vehiculos.fk_clase_vehiculo')
-  ->select('fuecs.*', 'vehiculos.placa', 'vehiculos.codigo_interno', 'vehiculos.modelo', 'vehiculos.numero_tarjeta_operacion', 'operadores.nombres', 'operadores.apellidos', 'operadores.identificacion as cedula', 'operadores.vigencia_licencia', 'rutas_fuec.origen', 'rutas_fuec.destino', 'contratos_fuec.id as contrato', 'contratos_fuec.nombre as razonsocial', 'contratos_fuec.identificacion', 'tipos.nombre as objeto_contrato', 't2.nombre as marca', 't3.nombre as clase')
-  ->where('fuecs.id', 1)
+  ->leftjoin('users', 'users.id', '=', 'fuecs.fk_user')
+  ->select('fuecs.*', 'vehiculos.placa', 'vehiculos.codigo_interno', 'vehiculos.modelo', 'vehiculos.numero_tarjeta_operacion', 'operadores.nombres', 'operadores.apellidos', 'operadores.identificacion as cedula', 'operadores.vigencia_licencia', 'rutas_fuec.origen', 'rutas_fuec.destino', 'contratos_fuec.id as contrato', 'contratos_fuec.nombre as razonsocial', 'contratos_fuec.identificacion', 'tipos.nombre as objeto_contrato', 't2.nombre as marca', 't3.nombre as clase', 'users.nombres as name', 'users.apellidos as last_name')
+  ->where('fuecs.id', $fuec_id)
   ->first();
 
   $data = [
@@ -159,7 +177,18 @@ Route::get('/stream', function (Request $request) {
     'fuec' => $fuecs
   ];
 
-  $pdf = \PDF::loadView('contratos.fuec.documento_pdf', $data);
+  $contxt = stream_context_create([
+    'ssl' => [
+        'verify_peer' => FALSE,
+        'verify_peer_name' => FALSE,
+        'allow_self_signed' => TRUE,
+    ]
+  ]);
+
+  $pdf = \PDF::setOptions(['isHTML5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+  $pdf->getDomPDF()->setHttpContext($contxt);
+
+  $pdf->loadView('contratos.fuec.documento_pdf', $data);
 
   return $pdf->setPaper('legal')->stream('archivo.pdf');
 

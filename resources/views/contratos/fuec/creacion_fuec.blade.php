@@ -27,6 +27,10 @@
 
                           <h5>Fuec</h5>
 
+                          <?php
+                          
+                          ?>
+
                         </form>
 
                         <button type="button" class="btn btn-primary btn-sm nuevo_fuec" style="margin-top: 30px">Nuevo Fuec <i class="bi bi-plus-lg"></i></button>
@@ -83,12 +87,12 @@
                                             </td>
                                             <td>
                                               
-                                              <a href="{{url('prueba')}}"><i class="fs-3 bi-arrow-down-circle-fill download" ></i></a>
+                                              <a href="{{url('fuec/download/'.$fuec->id)}}"><i class="fs-3 bi-arrow-down-circle-fill download" ></i></a>
                                               
 
                                               <i style="margin-left: 10px" class="fs-3 bi-send-check"></i> 
 
-                                              <a href="{{url('stream')}}" target="_blank"><i style="margin-left: 10px" class="fs-3 bi-eye"></i></a>
+                                              <a href="{{url('fuec/stream/'.$fuec->id)}}" target="_blank"><i style="margin-left: 10px" class="fs-3 bi-eye"></i></a>
                                               
                                             </td>
                                         </tr>

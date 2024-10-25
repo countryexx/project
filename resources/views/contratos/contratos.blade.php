@@ -110,6 +110,9 @@
                                             <a target="_blank" title="Cámara de comercio" href="{{url('/'.$contrato->camara_comercio_pdf)}}"><i class="fs-4 bi-file-earmark-pdf"></i></a> 
 
                                             <a target="_blank" title="Rut" href="{{url('/'.$contrato->rut_pdf)}}"><i class="fs-4 bi-file-earmark-pdf"></i></a>
+
+                                            <a target="_blank" href="{{url('contratos/tarifas/'.$contrato->id)}}"><i class="fs-4 bi-currency-dollar" title="Ver Tarifas"></i></a>
+
                                         </td>
                                     </tr>
                                     <?php $cont++; ?>

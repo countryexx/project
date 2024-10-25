@@ -489,6 +489,8 @@
 
             opciones += ' <i class=" cambiar_proveedor fs-5 bi-arrow-left-right" title="Cambiar de Contratista" id-contratista="'+data.operadores[i].id_contratista+'" nombre-contratista="'+data.operadores[i].contratista+'" id-operador="'+data.operadores[i].id+'"></i>';
 
+            opciones += ' <i data-nombre="'+data.operadores[i].nombres+'" data-id="'+data.operadores[i].id+'" class="fs-5 bi-eye historico"></i>';
+
             $tabla_operadores.row.add([
               j,
               data.operadores[i].id,
